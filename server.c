@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include "TCPServer.h"
+#include "Stack.h"
+#include "stackShellLib.h"
+
+#define BACKLOG 10     // how many pending connections queue will hold
+#define MAX_INPUT 1024
+#define MAX_RESPOND 256
+
+struct Stack *s;
+
+void *client_handler(void *args)
+{
+	printf("Client accepted\n");
+	int *sockfd = (int *)args;
+
+	// Input variables        
+        char cmd[MAX_INPUT + 1];
+        int size;
+
+	// Output variables
+	int write_size;
+	char buffer[MAX_RESPOND]; // Output to user
+	
+	// If exit command
+	int fb = 1; // feedback
+	do
+	{
+                receive(*sockfd, (char **)&cmd, MAX_INPUT + 1, &size);
+                if (size > 0)
+                {
+			fb = stack_command_handler(s, cmd, size, buffer, &write_size);
+			buffer[write_size + 1] = 0;  // Make sure it's printable
+			if (fb && write_size > 0)
+			{
+				printf("Client request: %s | Respond: %s\n", cmd, buffer);
+				sock_send(buffer, sockfd);
+			}
+			memset(cmd, 0, MAX_RESPOND);
+		}
+		else
+			fb = 0;
+	}
+	while(fb);
+	return 0;
+}
+
+
+int main(void)
+{
+    s = (struct Stack *)create_stack();
+    struct sigaction *sa = calloc(sizeof(struct sigaction), 1);
+    char s[INET_ADDRSTRLEN];
+    
+    // Create and bind server socket
+    int sockfd = create_server(sa, (char **)&s);
+    if (sockfd <= 0 )
+    {
+    	printf("Error creating socket\n");
+    }
+    // Listen to the server
+    server_listen(sockfd, BACKLOG);
+    // Reap dead processes
+    reap_dead_processes(sa);
+
+    printf("server: waiting for connections...\n");
+    handle_forever(sockfd, (char **)&s, client_handler);
+    
+    free(sa);
+    return 0;
+}
