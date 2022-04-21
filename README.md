@@ -5,12 +5,28 @@ Recycled some of old code from OS Assignments.
 The shell is based on Shell assignment,
 The Server & Client is based on Multi-threaded TCP Server (+Its client).
 
-# Usage:
+# Makefile:
 
 
 ## Local Stack & Shell
 `make local`
 
 ## Server &  Client (Multi threaded)
-make server
-make client
+Server:
+`make server`
+
+
+Client:
+`make client`
+
+
+# Usage:
+
+## Local
+`./local`
+
+
+## Server & Client
+Start the server using `./server`
+
+Then, create client instance using `./client <IP>` where by default (as the server is currently hard coded) you may use 127.0.0.1 as IP.
