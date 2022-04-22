@@ -1,0 +1,24 @@
+push abcdefghi
+push abcdefgh
+push abcdefg
+push abcdef
+push abcde
+push abcd
+push abc
+push a
+top
+pop
+top
+pop
+top
+pop
+top
+pop
+top
+pop
+top
+pop
+top
+pop
+top
+pop
