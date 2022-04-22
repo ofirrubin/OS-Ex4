@@ -5,6 +5,9 @@ Recycled some of old code from OS Assignments.
 The shell is based on Shell assignment,
 The Server & Client is based on Multi-threaded TCP Server (+Its client).
 
+Note: I'm not sure about the implementation of malloc & free, used based on tutorial and made a simpler version.
+I've seen with valgrind that It shows as invalid reads - The question is wether it's because I read & write memory without the allocation or something is wrong with the implementation. 
+
 # Makefile:
 
 
