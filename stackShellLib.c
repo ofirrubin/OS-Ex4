@@ -53,8 +53,9 @@ int cmd_sw(char *cmd, char *cmp){ // Command Starts with
 }
 // END Recycling | End of recycling from Shell assignment
 
-int stack_command_handler(struct Stack *s, char *cmd, int size, char output[MAX_SIZE], int *write_size)
+int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int size, char output[MAX_SIZE], int *write_size)
 {
+	printf("DEBUG: Received %s|END|\n", cmd);
 	if (cmd_eq(cmd, "exit"))
 	{
 		*write_size = 0;
@@ -62,17 +63,33 @@ int stack_command_handler(struct Stack *s, char *cmd, int size, char output[MAX_
 	}
 	if (cmd_sw(cmd, "push"))
 	{
-		if(push_copy(s, cmd + sizeof("push"), size - sizeof("push")))
-			*write_size = sprintf(output, "OUTPUT: Pushed\n");
+		int push_size = size - sizeof("push");
+		if (push_size > 0)
+		{
+			pthread_mutex_lock(lock);
+			printf("Writing %ld\n", size - sizeof("push"));
+			if(push_copy(s, cmd + sizeof("push"), size - sizeof("push")))
+				*write_size = sprintf(output, "OUTPUT: Pushed\n");
+			else
+				*write_size = sprintf(output, "OUTPUT: Push failed\n");
+			pthread_mutex_unlock(lock);
+		}
 		else
-			*write_size = sprintf(output, "OUTPUT: Push failed\n");
+		{
+			printf("DEBUG: Push size is lower than 0\n");
+			*write_size = sprintf(output, "OUTPUT: Can't be empty\n");
+		}
 	}
 	else if (cmd_eq(cmd, "pop"))
 	{
+	        pthread_mutex_lock(lock);
+
 		if (pop(s))
 			*write_size = sprintf(output, "OUTPUT: Popped\n");
 		else
-			*write_size = sprintf(output, "OUTPUT: Stack is empty, nothing to pop\n");
+			*write_size = sprintf(output, "OUTPUT: Failed - Empty\n");
+		pthread_mutex_unlock(lock);
+
 	}
 	else if (cmd_eq(cmd, "top"))
 	{
@@ -80,12 +97,6 @@ int stack_command_handler(struct Stack *s, char *cmd, int size, char output[MAX_
 			*write_size = sprintf(output, "OUTPUT: %s\n", top(s));
 		else
 			*write_size = sprintf(output, "OUTPUT: Stack is empty\n");
-	}
-	else if (cmd_eq(cmd, "reset"))
-	{
-		free_stack(s);
-		s = create_stack();
-		*write_size = sprintf(output, "OUTPUT:Reset Complete!\n");
 	}
 	else
 		*write_size = sprintf(output, "command not found {Empty? %d}\n", is_empty(s));

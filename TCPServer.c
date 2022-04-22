@@ -127,7 +127,7 @@ void handle_forever(int sockfd, char *s[INET_ADDRSTRLEN], void *(* f)(void *))
 {
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size;
-    pthread_t thread_id;
+
     int new_fd; // Client Socket fd
     
     // Handle forever
@@ -140,7 +140,7 @@ void handle_forever(int sockfd, char *s[INET_ADDRSTRLEN], void *(* f)(void *))
         }
 
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), *s, sizeof *s);
-
+        pthread_t thread_id;
 	pthread_create(&thread_id, NULL, *f, (void *)&new_fd);
     }
 }

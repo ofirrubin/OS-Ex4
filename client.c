@@ -19,8 +19,7 @@
 
 #define PORT "3490" // the port client will be connecting to 
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
-#define MAX_INPUT 1032
+#define MAXDATASIZE 32 // max number of bytes we can get at once 
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -98,29 +97,30 @@ int main(int argc, char *argv[])
 	freeaddrinfo(servinfo); // all done with this structure
 
 
-        char buffer[MAX_INPUT + 1];
-        int recv_size;
-     
+        char buffer[MAXDATASIZE];
 	
 	char *cmd;
-	int size;
-	int fb = 1; // feedback
+	int size, recv_size, loop = 1;
 	do
 	{
-		printf("Enter command: ");
+		printf("Enter command: "); // Get command from the client input
 		get_command(&cmd, &size);
-		sock_send(cmd, size, &sockfd);
-		free(cmd); // Free the command
-		receive(sockfd, (char **)&buffer, MAX_INPUT + 1, &recv_size);
-		buffer[recv_size + 1] = 0;
-		if (recv_size > 0)
-		{
-			printf("%s", buffer);
+		sock_send(cmd, size, &sockfd); // Send the command over TCP
+		if (cmd_eq(cmd, "exit")){
+			loop = 0;
 		}
-		if (cmd_eq(cmd, "exit"))
-			fb = 0;
+		else
+		{
+			receive(sockfd, (char **)&buffer, MAXDATASIZE - 1, &recv_size); // Get respond
+			if (recv_size > 0) // If any respond, print it.
+			{
+				printf("%s", buffer);
+				memset(buffer, 0, MAXDATASIZE); // Reset the buffer
+			}
+		}
+		free(cmd); // Free the command, we don't need it anymore
 	}
-	while(fb);
+	while(loop);
 	
 	close(sockfd);
 	return 0;

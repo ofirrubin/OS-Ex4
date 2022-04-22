@@ -8,9 +8,10 @@
 
 #define BACKLOG 10     // how many pending connections queue will hold
 #define MAX_INPUT 1024
-#define MAX_RESPOND 256
+#define MAX_RESPOND 32
 
 struct Stack *s;
+pthread_mutex_t lock;
 
 void *client_handler(void *args)
 {
@@ -28,18 +29,25 @@ void *client_handler(void *args)
 	// If exit command
 	int fb = 1; // feedback
 	do
-	{
+	{       // Reset input & output buffers
+		memset(cmd, 0, MAX_INPUT); 
+		memset(buffer, 0, MAX_RESPOND);
                 receive(*sockfd, (char **)&cmd, MAX_INPUT + 1, &size);
                 if (size > 0)
                 {
-			fb = stack_command_handler(s, cmd, size, buffer, &write_size);
+                	
+			fb = stack_command_handler(s, &lock, cmd, size, buffer, &write_size);
 			buffer[write_size + 1] = 0;  // Make sure it's printable
 			if (fb && write_size > 0)
 			{
-				printf("Client request: %s | Respond: %s\n", cmd, buffer);
+				printf("DEBUG: Client request: %s | Respond: %s\n", cmd, buffer);
 				sock_send(buffer, sockfd);
 			}
-			memset(cmd, 0, MAX_RESPOND);
+			else if (fb)
+			{
+				printf("DEBUG: No respond\n");
+				sock_send("No respond\n", sockfd);
+			}
 		}
 		else
 			fb = 0;
@@ -52,6 +60,10 @@ void *client_handler(void *args)
 int main(void)
 {
     s = (struct Stack *)create_stack();
+    if (pthread_mutex_init(&lock, NULL) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
     struct sigaction *sa = calloc(sizeof(struct sigaction), 1);
     char s[INET_ADDRSTRLEN];
     
