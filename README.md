@@ -23,7 +23,7 @@ Client:
 # Usage:
 
 ## Local
-`./local`
+`./localShell`
 
 
 ## Server & Client
