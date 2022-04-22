@@ -8,6 +8,6 @@ void server_listen(int sockfd, int backlog);
 
 void handle_forever(int sockfd, char *s[INET_ADDRSTRLEN], void *(* f)(void *));
 
-void sock_send(const char *respond, int *sockfd);
+int sock_send(const char *respond, int sockfd);
 
 int receive(int sockfd, char **buffer, int size_p1, int *input_size);

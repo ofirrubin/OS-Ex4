@@ -38,10 +38,12 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void sock_send(const char *respond, int *sockfd)
-{
-        if (send(*sockfd, respond, strlen(respond), 0) == -1)
+int sock_send(const char *respond, int sockfd)
+
+{	int n = -1;
+        if ((n= send(sockfd, respond, strlen(respond), 0)) == -1)
 		perror("send");
+	return n;
 }
 
 void receive(int sockfd, char **buffer, int size_p1, int *input_size)
@@ -126,20 +128,16 @@ void server_listen(int sockfd, int backlog)
 void handle_forever(int sockfd, char *s[INET_ADDRSTRLEN], void *(* f)(void *))
 {
     struct sockaddr_storage their_addr; // connector's address information
-    socklen_t sin_size;
-
-    int new_fd; // Client Socket fd
     
     // Handle forever
     while(1) {  // main accept() loop
-        sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        socklen_t sin_size = sizeof their_addr;
+        int new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
             perror("accept");
             continue;
         }
 
-        inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), *s, sizeof *s);
         pthread_t thread_id;
 	pthread_create(&thread_id, NULL, *f, (void *)&new_fd);
     }

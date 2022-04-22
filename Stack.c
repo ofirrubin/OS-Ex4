@@ -28,14 +28,6 @@ struct Stack *create_stack(void)
 	return s;
 }	
 
-void __wait_and_lock(struct Stack *stack){
-	while (stack->locked) // Wait for the resource to be freed
-	{
-		sleep(0.001); // Make it a bit more efficient
-	}
-	stack->locked = 1; // Once it's free, lock it again
-}
-
 // Essentialy - read command is free to use but write commands are not thread safe by nature, we protect thread-safe usage by wait&lock
 int push(struct Stack *stack, char *val)
 {
@@ -43,7 +35,6 @@ int push(struct Stack *stack, char *val)
 	{
 		return 0;
 	}
-	__wait_and_lock(stack);
 	// Push here
 	if (! stack->value) // Empty stack
 	{
@@ -80,7 +71,7 @@ int pop(struct Stack *stack) // Unlike traditional high-level language, here pop
 {	
 	if (!stack)
 		return 0;
-	__wait_and_lock(stack);
+
 	// Pop here
 	if (!stack->value) // If stack is empty
 	{	

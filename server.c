@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
+#include <signal.h> // Override signal
+#include <unistd.h> // Socket close
 #include "TCPServer.h"
 #include "Stack.h"
 #include "stackShellLib.h"
@@ -16,8 +17,7 @@ pthread_mutex_t lock;
 void *client_handler(void *args)
 {
 	printf("Client accepted\n");
-	int *sockfd = (int *)args;
-
+	int sockfd = *(int *)args;
 	// Input variables        
         char cmd[MAX_INPUT + 1];
         int size;
@@ -32,20 +32,19 @@ void *client_handler(void *args)
 	{       // Reset input & output buffers
 		memset(cmd, 0, MAX_INPUT); 
 		memset(buffer, 0, MAX_RESPOND);
-                receive(*sockfd, (char **)&cmd, MAX_INPUT + 1, &size);
+                receive(sockfd, (char **)&cmd, MAX_INPUT + 1, &size);
                 if (size > 0)
                 {
-                	
 			fb = stack_command_handler(s, &lock, cmd, size, buffer, &write_size);
 			buffer[write_size + 1] = 0;  // Make sure it's printable
 			if (fb && write_size > 0)
 			{
-				printf("DEBUG: Client request: %s | Respond: %s\n", cmd, buffer);
+				printf("DEBUG: Client %d request: |%s| Respond: %s\n", sockfd, cmd, buffer);
 				sock_send(buffer, sockfd);
 			}
 			else if (fb)
 			{
-				printf("DEBUG: No respond\n");
+				printf("DEBUG: Sending no respond [Client %d]\n", sockfd);
 				sock_send("No respond\n", sockfd);
 			}
 		}
@@ -53,6 +52,8 @@ void *client_handler(void *args)
 			fb = 0;
 	}
 	while(fb);
+	printf("DEBUG: Server closing connection to client %d\n", sockfd);
+	close(sockfd);
 	return 0;
 }
 

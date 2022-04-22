@@ -96,32 +96,46 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo); // all done with this structure
 
-
-        char buffer[MAXDATASIZE];
+	struct timeval tv;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+        
+        char buffer[4];
 	
 	char *cmd;
 	int size, recv_size, loop = 1;
 	do
 	{
+		memset(buffer, 0, MAXDATASIZE);
 		printf("Enter command: "); // Get command from the client input
 		get_command(&cmd, &size);
-		sock_send(cmd, size, &sockfd); // Send the command over TCP
-		if (cmd_eq(cmd, "exit")){
-			loop = 0;
-		}
-		else
+		// Making sure we got legal commands to send, local verification
+		if (cmd_sw(cmd, "push ") || cmd_eq(cmd, "pop") || cmd_eq(cmd, "top") || cmd_eq(cmd, "exit"))
 		{
-			receive(sockfd, (char **)&buffer, MAXDATASIZE - 1, &recv_size); // Get respond
-			if (recv_size > 0) // If any respond, print it.
+			sock_send(cmd, size, &sockfd); // Send the command over TCP
+			if (cmd_eq(cmd, "exit"))
+				loop = 0;
+			else
 			{
-				printf("%s", buffer);
-				memset(buffer, 0, MAXDATASIZE); // Reset the buffer
+				recv_size = MAXDATASIZE;
+				while(MAXDATASIZE - recv_size == 0)
+				{
+					receive(sockfd, (char **)&buffer, recv_size, &recv_size); // Get respond
+					if (recv_size > 0) // If any respond, print it.
+					{
+						printf("%s", buffer);
+						memset(buffer, 0, MAXDATASIZE); // Reset the buffer
+					}
+				}
 			}
 		}
+		else
+			printf("Client: Invalid command, not sending to the server.\n");
 		free(cmd); // Free the command, we don't need it anymore
 	}
 	while(loop);
-	
+	printf("DEBUG: Closing client\n");
 	close(sockfd);
 	return 0;
 }

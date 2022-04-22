@@ -55,7 +55,6 @@ int cmd_sw(char *cmd, char *cmp){ // Command Starts with
 
 int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int size, char output[MAX_SIZE], int *write_size)
 {
-	printf("DEBUG: Received %s|END|\n", cmd);
 	if (cmd_eq(cmd, "exit"))
 	{
 		*write_size = 0;
@@ -67,7 +66,6 @@ int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int
 		if (push_size > 0)
 		{
 			pthread_mutex_lock(lock);
-			printf("Writing %ld\n", size - sizeof("push"));
 			if(push_copy(s, cmd + sizeof("push"), size - sizeof("push")))
 				*write_size = sprintf(output, "OUTPUT: Pushed\n");
 			else

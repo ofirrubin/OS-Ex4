@@ -19,11 +19,14 @@ int main()
 	do
 	{
 		get_command(&cmd, &size);
-		fb = stack_command_handler(s, &lock, cmd, size, buffer, &write_size);
+		if (size > 0 && (cmd_sw(cmd, "push ") || cmd_eq(cmd, "pop") || cmd_eq(cmd, "top") || cmd_eq(cmd, "exit")))
+		{
+			fb = stack_command_handler(s, &lock, cmd, size, buffer, &write_size);
+			buffer[write_size + 1] = 0; 
+			if (fb && write_size > 0)
+				printf("%s", buffer);
+		}
 		free(cmd); // Free the command
-		buffer[write_size + 1] = 0; 
-		if (fb && write_size > 0)
-			printf("%s", buffer);
 	}
 	while(fb);
 	free_stack(s); // Free stack "object"
