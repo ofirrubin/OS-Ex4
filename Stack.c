@@ -8,6 +8,8 @@
 #include <unistd.h>
 #endif
 
+#include "mlock.h"
+
 
 struct Stack
 {
@@ -16,10 +18,23 @@ struct Stack
 	struct Stack *next;	
 };
 
+void *calloc_func(size_t size)
+{
+	// return calloc(1, size);
+	return mem_calloc(size);
+}
+
+void free_func(void *ptr)
+{
+	// free(ptr);
+	return mem_free(ptr);
+}
+
+
 struct Stack *create_stack(void)
 {
 	struct Stack *s = NULL;
-	s = calloc(1, sizeof(struct Stack));
+	s = calloc_func(sizeof(struct Stack));
 	if (!s)
 		return NULL;
 	s->locked = 0;
@@ -78,14 +93,14 @@ int pop(struct Stack *stack) // Unlike traditional high-level language, here pop
 		stack->locked = 0; // Unlock stack
 		return 0;
 	}
-	free(stack->value);
+	free_func(stack->value);
 	stack->value = NULL;	
 	if (stack->next)
 	{
 		struct Stack *ptr = stack->next;
 		stack->value = ptr->value;
 		stack->next = ptr->next;
-		free(ptr); // We are removing the next struct duplicate
+		free_func(ptr); // We are removing the next struct duplicate
 	}
 	stack->locked = 0; // Free the resource
 	return 1;
@@ -107,9 +122,9 @@ void free_stack(struct Stack *stack)
 	while(stack)
 	{
 		if (stack->value)
-			free(stack->value);
+			free_func(stack->value);
 		pointer = stack->next;
-		free(stack);
+		free_func(stack);
 		stack = pointer;
 	}
 }

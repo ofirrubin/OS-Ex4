@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include "Stack.h"
 #include "stackShellLib.h"
+#include "mlock.h"
 
 
 #ifndef MAX_SIZE
@@ -13,7 +14,7 @@
 void get_command(char **cmd, int *cmd_len)
 {
 	int sz = sizeof(char) * MAX_SIZE; // 1024 is max length of each argument, +8 bytes for command prefix
-	char *c = calloc(1, sz); // free(cmd) has to be called
+	char *c = mem_calloc(sz);
 	*cmd = c;
 	if (!c){
 		printf("ERROR: Error allocating memory for command input\n");
@@ -60,17 +61,16 @@ int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int
 		*write_size = 0;
 		return 0;
 	}
+	pthread_mutex_lock(lock);
 	if (cmd_sw(cmd, "push"))
 	{
 		int push_size = size - sizeof("push");
 		if (push_size > 0)
 		{
-			pthread_mutex_lock(lock);
 			if(push_copy(s, cmd + sizeof("push"), size - sizeof("push")))
 				*write_size = sprintf(output, "OUTPUT: Pushed\n");
 			else
 				*write_size = sprintf(output, "OUTPUT: Push failed\n");
-			pthread_mutex_unlock(lock);
 		}
 		else
 		{
@@ -80,14 +80,11 @@ int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int
 	}
 	else if (cmd_eq(cmd, "pop"))
 	{
-	        pthread_mutex_lock(lock);
-
 		if (pop(s))
 			*write_size = sprintf(output, "OUTPUT: Popped\n");
 		else
 			*write_size = sprintf(output, "OUTPUT: Failed - Empty\n");
-		pthread_mutex_unlock(lock);
-
+	
 	}
 	else if (cmd_eq(cmd, "top"))
 	{
@@ -96,8 +93,7 @@ int stack_command_handler(struct Stack *s, pthread_mutex_t *lock, char *cmd, int
 		else
 			*write_size = sprintf(output, "OUTPUT: Stack is empty\n");
 	}
-	else
-		*write_size = sprintf(output, "command not found {Empty? %d}\n", is_empty(s));
+	pthread_mutex_unlock(lock);
 	return 1;
 }
 

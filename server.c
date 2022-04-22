@@ -6,6 +6,7 @@
 #include "TCPServer.h"
 #include "Stack.h"
 #include "stackShellLib.h"
+#include "mlock.h"
 
 #define BACKLOG 10     // how many pending connections queue will hold
 #define MAX_INPUT 1024
@@ -65,6 +66,7 @@ int main(void)
         printf("\n mutex init has failed\n");
         return 1;
     }
+    init_memory();
     struct sigaction *sa = calloc(sizeof(struct sigaction), 1);
     char s[INET_ADDRSTRLEN];
     
