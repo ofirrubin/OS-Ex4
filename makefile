@@ -8,7 +8,6 @@ all: localShell server client
 client: Stack.a stackShellLib.a
 	$(CC) $(FLAGS) client.c Stack.a stackShellLib.a -o client 
 
-
 # Server
 
 server: server.o TCPServer.a stackShellLib.a Stack.a
@@ -31,24 +30,31 @@ localShell: localShell.o Stack.a stackShellLib.a
 
 
 localShell.o: local.c Stack.h stackShellLib.h
-	$(CC) $(FLAGS) -c local.c
+	$(CC) $(FLAGS) -c local.c Stack.h stackShellLib.h
 
 #stackShellLib
 
-stackShellLib.a: stackShellLib.o Stack.o
-	$(AR) -rcs stackShellLib.a stackShellLib.o Stack.o
+stackShellLib.a: stackShellLib.o Stack.o mlock.o
+	$(AR) -rcs stackShellLib.a stackShellLib.o Stack.o mlock.o
 
-stackShellLib.o: stackShellLib.c stackShellLib.h
+stackShellLib.o: stackShellLib.c stackShellLib.h mlock.h
 	$(CC) $(FLAGS) -c stackShellLib.c
 
 # Stack
 
-Stack.a: Stack.o
-	$(AR) -rcs Stack.a Stack.o
+Stack.a: Stack.o mlock.o
+	$(AR) -rcs Stack.a Stack.o mlock.o
 
-Stack.o: Stack.c Stack.h
+Stack.o: Stack.c Stack.h mlock.h
 	$(CC) $(FLAGS) -c Stack.c
 
+# Memory
+
+mlock.a: mlock.o
+	$(AR) -rcs mlock.a mlock.o
+
+mlock.o: mlock.c mlock.h
+	$(CC) $(FLAGS) -pthread -c mlock.c
 
 .PHONY: clean all
 
