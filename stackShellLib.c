@@ -23,7 +23,7 @@ void get_command(char **cmd, int *cmd_len)
 	*cmd_len = sz;
 	char current = getchar(); // Get input from the user
 	int position = 0;
-	while (current != EOF && current != '\n'){
+	while (position < sz && current != EOF && current != '\n'){
 		c[position] = current;
 		position += 1;
 		current = getchar();

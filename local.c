@@ -1,4 +1,5 @@
 #include "stackShellLib.h"
+#include "mlock.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@ int main()
 {
 	struct Stack *s = create_stack();
 	pthread_mutex_t lock;
+	init_memory();
 	if (pthread_mutex_init(&lock, NULL) != 0) {
         printf("\n mutex init has failed\n");
         return 1;
@@ -26,7 +28,9 @@ int main()
 			if (fb && write_size > 0)
 				printf("%s", buffer);
 		}
-		free(cmd); // Free the command
+		else
+			printf("Invalid commannd, check syntax and try again\n");
+		mem_free(cmd); // Free the command
 	}
 	while(fb);
 	free_stack(s); // Free stack "object"

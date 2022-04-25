@@ -75,7 +75,7 @@ int push(struct Stack *stack, char *val)
 
 int push_copy(struct Stack *stack, char *val, int size)
 {
-	char *tmp = calloc(1, size + 1);
+	char *tmp = mem_calloc(size + 1);
 	if (!tmp)
 		return 0;
 	strncpy(tmp, val, size);

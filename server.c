@@ -9,8 +9,7 @@
 #include "mlock.h"
 
 #define BACKLOG 10     // how many pending connections queue will hold
-#define MAX_INPUT 1024
-#define MAX_RESPOND 32
+#define MAX 1032
 
 struct Stack *s;
 pthread_mutex_t lock;
@@ -20,20 +19,20 @@ void *client_handler(void *args)
 	printf("Client accepted\n");
 	int sockfd = *(int *)args;
 	// Input variables        
-        char cmd[MAX_INPUT + 1];
+        char cmd[MAX + 1];
         int size;
 
 	// Output variables
 	int write_size;
-	char buffer[MAX_RESPOND]; // Output to user
+	char buffer[MAX]; // Output to user
 	
 	// If exit command
 	int fb = 1; // feedback
 	do
 	{       // Reset input & output buffers
-		memset(cmd, 0, MAX_INPUT); 
-		memset(buffer, 0, MAX_RESPOND);
-                receive(sockfd, (char **)&cmd, MAX_INPUT + 1, &size);
+		memset(cmd, 0, MAX); 
+		memset(buffer, 0, MAX);
+                receive(sockfd, (char **)&cmd, MAX + 1, &size);
                 if (size > 0)
                 {
 			fb = stack_command_handler(s, &lock, cmd, size, buffer, &write_size);
@@ -41,12 +40,12 @@ void *client_handler(void *args)
 			if (fb && write_size > 0)
 			{
 				printf("DEBUG: Client %d request: |%s| Respond: %s\n", sockfd, cmd, buffer);
-				sock_send(buffer, sockfd);
+				sock_send(buffer, write_size+1, sockfd);
 			}
 			else if (fb)
 			{
 				printf("DEBUG: Sending no respond [Client %d]\n", sockfd);
-				sock_send("No respond\n", sockfd);
+				sock_send("No respond\n\0", 12, sockfd);
 			}
 		}
 		else

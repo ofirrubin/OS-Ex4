@@ -38,10 +38,12 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int sock_send(const char *respond, int sockfd)
+int sock_send(const char *respond, int size, int sockfd)
 
-{	int n = -1;
-        if ((n= send(sockfd, respond, strlen(respond), 0)) == -1)
+{	int n = -1;                  //strlen(respond)
+	if (size < 0)
+		size = strlen(respond);
+        if ((n= send(sockfd, respond, size, 0)) == -1)
 		perror("send");
 	return n;
 }

@@ -16,10 +16,11 @@
 
 #include "Stack.h"
 #include "stackShellLib.h"
+#include "mlock.h"
 
 #define PORT "3490" // the port client will be connecting to 
 
-#define MAXDATASIZE 32 // max number of bytes we can get at once 
+#define BUFFERSIZE 1032 // max number of bytes we can get at once 
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -48,8 +49,8 @@ void receive(int sockfd, char **buffer, int size_p1, int *input_size)
 
 int main(int argc, char *argv[])
 {
-	int sockfd;  
-
+	char *ip = argv[1];
+	int sockfd = 0;  
 	struct addrinfo hints, *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
@@ -58,12 +59,13 @@ int main(int argc, char *argv[])
 	    fprintf(stderr,"usage: client hostname\n");
 	    exit(1);
 	}
+	
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(ip, PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -93,21 +95,16 @@ int main(int argc, char *argv[])
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 			s, sizeof s);
 	printf("client: connecting to %s\n", s);
-
+	memset(s, 0, sizeof(s));
 	freeaddrinfo(servinfo); // all done with this structure
-
-	struct timeval tv;
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
         
-        char buffer[4];
+        char buffer[BUFFERSIZE];
 	
 	char *cmd;
-	int size, recv_size, loop = 1;
+	int size, recv_size = 0, loop = 1;
 	do
 	{
-		memset(buffer, 0, MAXDATASIZE);
+		memset(buffer, 0, BUFFERSIZE);
 		printf("Enter command: "); // Get command from the client input
 		get_command(&cmd, &size);
 		// Making sure we got legal commands to send, local verification
@@ -118,21 +115,17 @@ int main(int argc, char *argv[])
 				loop = 0;
 			else
 			{
-				recv_size = MAXDATASIZE;
-				while(MAXDATASIZE - recv_size == 0)
+				recv_size = recv(sockfd, &buffer, BUFFERSIZE, 0);
+				if (loop && recv_size > 0) // If any respond, print it.
 				{
-					receive(sockfd, (char **)&buffer, recv_size, &recv_size); // Get respond
-					if (recv_size > 0) // If any respond, print it.
-					{
-						printf("%s", buffer);
-						memset(buffer, 0, MAXDATASIZE); // Reset the buffer
-					}
+					printf("%s", buffer);
+					memset(buffer, 0, BUFFERSIZE); // Reset the buffer
 				}
 			}
 		}
 		else
 			printf("Client: Invalid command, not sending to the server.\n");
-		free(cmd); // Free the command, we don't need it anymore
+		mem_free(cmd); // Free the command, we don't need it anymore
 	}
 	while(loop);
 	printf("DEBUG: Closing client\n");
