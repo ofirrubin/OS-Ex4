@@ -11,6 +11,14 @@ I've seen with valgrind that It shows as invalid reads - The question is wether 
 Testing was performed using `test.txt` | Use pipes to set input and output, comparing it to the expected data.
 
 # Makefile:
+`make all`
+
+`make clean`
+
+Note: cleanup is used to also remove unwanted test trash.
+
+## All % Cleanup
+
 
 ## Testing
 `make test`
