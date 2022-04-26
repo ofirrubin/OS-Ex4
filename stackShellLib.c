@@ -4,6 +4,7 @@
 #include "Stack.h"
 #include "stackShellLib.h"
 #include "mlock.h"
+#include <string.h>
 
 
 #ifndef MAX_SIZE
@@ -13,23 +14,24 @@
 // Recycled from Shell assignment, minor changes (such as length)
 void get_command(char **cmd, int *cmd_len)
 {
-	int sz = sizeof(char) * MAX_SIZE; // 1024 is max length of each argument, +8 bytes for command prefix
-	char *c = mem_calloc(sz);
-	*cmd = c;
+	char *c = mem_calloc(MAX_SIZE);
 	if (!c){
 		printf("ERROR: Error allocating memory for command input\n");
 		exit(0);
 	}
-	*cmd_len = sz;
-	char current = getchar(); // Get input from the user
-	int position = 0;
-	while (position < sz && current != EOF && current != '\n'){
-		c[position] = current;
-		position += 1;
-		current = getchar();
+	// Get input from the user
+	if (!fgets(c, MAX_SIZE, stdin))
+	{
+		mem_free(c);
 	}
-	c[position + 1] = 0; // Make iterable
-	*cmd_len = position;
+	*cmd_len = strlen(c);
+	if (*cmd_len > 0)
+	{ // Remove trailling (new line etc)
+		while ((char *)cmd_len > (char *)c && c[*cmd_len] == 0)
+			*cmd_len = *cmd_len - 1;
+	}
+	*(c+*cmd_len) = 0;
+	*cmd = c;
 }
 
 
