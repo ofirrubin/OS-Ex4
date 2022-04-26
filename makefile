@@ -1,8 +1,12 @@
 GCC = gcc
 FLAGS = -g -Wall
 
-all: localShell server client
+all: localShell server client test
 
+
+# Test
+test: client server
+	$(CC) $(FLAGS) -pthread test.c -o test
 
 # Client 
 client: Stack.a stackShellLib.a
@@ -59,4 +63,4 @@ mlock.o: mlock.c mlock.h
 .PHONY: clean all
 
 clean: # Remove any file that might created.
-	rm -f *.o *.a *.so *.gch localShell client server
+	rm -f *.o *.a *.so *.gch localShell client server test trash.txt
