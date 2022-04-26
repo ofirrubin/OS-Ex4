@@ -17,7 +17,7 @@ Testing was performed using `test.txt` | Use pipes to set input and output, comp
 
 Note: cleanup is used to also remove unwanted test trash.
 
-## All % Cleanup
+## All & Cleanup
 
 
 ## Testing
