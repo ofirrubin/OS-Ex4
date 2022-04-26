@@ -12,6 +12,8 @@ Testing was performed using `test.txt` | Use pipes to set input and output, comp
 
 # Makefile:
 
+## Testing
+`make test`
 
 ## Local Stack & Shell
 `make local`
@@ -26,12 +28,22 @@ Client:
 
 
 # Usage:
+After using `make` command, follow the instructions to run:
+
+
+## Testing
+
+Make sure that there is no other server running.
+Run using: `./test`
+
+Results: If the output shows that the stack is empty, thus it's valid.
+Note: Terminate the server if wanted by CTRL + C
 
 ## Local
 `./localShell`
-
+In local, the stack is saved locally, used mainly for debugging & testing.
 
 ## Server & Client
-Start the server using `./server`
+Start a server using `./server` (or by testing).
 
 Then, create client instance using `./client <IP>` where by default (as the server is currently hard coded) you may use 127.0.0.1 as IP.
