@@ -124,7 +124,9 @@ int main(int argc, char *argv[])
 			}
 		}
 		else
+		{
 			printf("Client: Invalid command, not sending to the server.\n");
+		}
 		mem_free(cmd); // Free the command, we don't need it anymore
 	}
 	while(loop);

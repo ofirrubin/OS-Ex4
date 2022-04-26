@@ -10,8 +10,8 @@ int main()
 	pthread_mutex_t lock;
 	init_memory();
 	if (pthread_mutex_init(&lock, NULL) != 0) {
-        printf("\n mutex init has failed\n");
-        return 1;
+		printf("\n mutex init has failed\n");
+		return 1;
     	}
 	char *cmd;
 	int size;
